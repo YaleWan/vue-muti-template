@@ -1,21 +1,34 @@
 const path = require("path");
-require("./src/utils/getPage");
+const pages = require("./src/utils/getPage").getPages();
+console.log("pages", pages);
 module.exports = {
-  pages: {
-    test1: {
-      // page 的入口
-      entry: "src/views/pro/test1/main.js",
-      // 模板来源
-      template: "src/views/pro/test1/index.html",
-      // 在 dist/index.html 的输出
-      filename: "pro/test1/index.html"
+  publicPath: process.env.NODE_ENV === "development" ? "/" : "./",
+  pages,
+  configureWebpack: {
+    output: {
+      filename: `js/[name]/[name].[hash:8].js`,
+      chunkFilename: `js/[name]/[name].[hash:8].js`
     }
   },
-  configureWebpack: {
-    resolve: {
-      alias: {
-        "@": path.resolve("src")
+  css: {
+    extract: {
+      filename: "js/[name]/[name].[hash:16].css",
+      chunkFilename: "js/[name]/[name].[hash:16].css"
+    },
+    loaderOptions: {
+      postcss: {
+        plugins: [
+          require("postcss-pxtorem")({
+            rootValue: 75, // 换算的基数
+            selectorBlackList: [], // 忽略转换正则匹配项
+            propList: ["*"]
+          })
+        ]
       }
     }
+  },
+  chainWebpack: config => {
+    config.resolve.alias.set("@", path.resolve("src"));
+    config.optimization.delete("splitChunks");
   }
 };
